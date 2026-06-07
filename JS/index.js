@@ -1,10 +1,10 @@
-(function() {
+(function () {
     let currentView = 'students';
     let currentData = [];
     let selectedSchoolForClasses = null;
     let selectedClassForStudents = null;
     let currentShiftFilter = 'all';
-    
+
     const mockData = {
         students: [
             { id: 'STD-001', name: 'Ana Beatriz Silva', class: '3º Ano A', school: 'Escola Metric Paulista', shift: 'Manhã', points: 1245 },
@@ -44,7 +44,7 @@
             { id: 'SCH-006', name: 'Metric Global School', students: 1123, score: 5543 }
         ]
     };
-    
+
     function getData(type) {
         return new Promise((resolve) => {
             setTimeout(() => {
@@ -52,39 +52,39 @@
                 if (type === 'schools') source = [...mockData.schools];
                 else if (type === 'classes') source = [...mockData.classes];
                 else source = [...mockData.students];
-                
+
                 source.sort((a, b) => (b.score || b.points || 0) - (a.score || a.points || 0));
                 const withRank = source.map((item, idx) => ({ ...item, rank: idx + 1, supabaseId: item.id }));
                 resolve(withRank);
             }, 30);
         });
     }
-    
+
     function getMedalHtml(rank) {
         if (rank === 1) return '<div class="position-medal"><i class="fas fa-crown"></i></div>';
         if (rank === 2) return '<div class="position-medal"><i class="fas fa-medal silver"></i></div>';
         if (rank === 3) return '<div class="position-medal"><i class="fas fa-medal bronze"></i></div>';
         return `<div class="position-number">${rank}º</div>`;
     }
-    
+
     function escapeHtml(str) {
         if (!str) return '';
-        return str.replace(/[&<>]/g, function(m) {
+        return str.replace(/[&<>]/g, function (m) {
             if (m === '&') return '&amp;';
             if (m === '<') return '&lt;';
             if (m === '>') return '&gt;';
             return m;
         });
     }
-    
+
     function getClassesBySchool(schoolName) {
         return mockData.classes.filter(c => c.school === schoolName);
     }
-    
+
     function getStudentsByClass(className, schoolName) {
         return mockData.students.filter(s => s.class === className && s.school === schoolName);
     }
-    
+
     function renderStudents(data) {
         let filtered = currentShiftFilter === 'all' ? data : data.filter(item => item.shift === currentShiftFilter);
         if (!filtered.length) return `<div class="empty-state"><i class="fas fa-user-graduate"></i><p>Nenhum aluno encontrado</p></div>`;
@@ -108,7 +108,7 @@
             </div>
         `).join('');
     }
-    
+
     function renderClasses(data) {
         let filtered = [...data];
         if (selectedSchoolForClasses) filtered = filtered.filter(item => item.school === selectedSchoolForClasses);
@@ -135,7 +135,7 @@
             </div>
         `).join('');
     }
-    
+
     function renderSchools(data) {
         if (!data.length) return `<div class="empty-state"><i class="fas fa-building"></i><p>Nenhuma escola encontrada</p></div>`;
         return data.map(item => `
@@ -154,7 +154,7 @@
             </div>
         `).join('');
     }
-    
+
     function showClassStudents(className, schoolName) {
         const students = getStudentsByClass(className, schoolName);
         document.getElementById('classDetailsPanel').style.display = 'block';
@@ -162,12 +162,12 @@
         document.getElementById('shiftFilterContainer').style.display = 'none';
         document.getElementById('schoolClassesFilter').style.display = 'none';
         document.getElementById('selectedClassName').innerHTML = `${escapeHtml(className)} · ${escapeHtml(schoolName)}`;
-        
+
         if (students.length) {
             document.getElementById('classStudentsList').innerHTML = students.map((s, idx) => `
                 <div class="rank-card">
                     <div class="rank-row">
-                        <div class="rank-position">${getMedalHtml(idx+1)}</div>
+                        <div class="rank-position">${getMedalHtml(idx + 1)}</div>
                         <div class="rank-content">
                             <div class="rank-title">${escapeHtml(s.name)}</div>
                             <div class="rank-meta">
@@ -187,7 +187,7 @@
         }
         selectedClassForStudents = true;
     }
-    
+
     function backToClasses() {
         document.getElementById('classDetailsPanel').style.display = 'none';
         document.querySelector('.ranking-scroll-area').style.display = 'block';
@@ -198,12 +198,12 @@
         selectedClassForStudents = null;
         loadRankings();
     }
-    
+
     async function loadRankings() {
         if (selectedClassForStudents) return;
         const container = document.getElementById('rankList');
         container.innerHTML = `<div class="loading"><i class="fas fa-spinner fa-pulse"></i><p>Carregando...</p></div>`;
-        
+
         const data = await getData(currentView);
         currentData = data;
         let html = '';
@@ -211,7 +211,7 @@
         else if (currentView === 'classes') html = renderClasses(data);
         else html = renderSchools(data);
         container.innerHTML = html;
-        
+
         if (currentView === 'schools') {
             document.querySelectorAll('.rank-card').forEach(card => {
                 card.removeEventListener('click', card.schoolHandler);
@@ -229,7 +229,7 @@
                 card.addEventListener('click', card.schoolHandler);
             });
         }
-        
+
         if (currentView === 'classes') {
             document.querySelectorAll('.rank-card').forEach(card => {
                 card.removeEventListener('click', card.classHandler);
@@ -242,7 +242,7 @@
             });
         }
     }
-    
+
     function updateClassFilterBySchool(schoolName) {
         const classFilter = document.getElementById('classBySchoolFilter');
         const filterContainer = document.getElementById('schoolClassesFilter');
@@ -265,7 +265,7 @@
         }
         loadRankings();
     }
-    
+
     function updateViewLabel() {
         const labels = { students: 'de Alunos', classes: 'de Turmas', schools: 'de Escolas' };
         document.getElementById('rankLabel').innerText = labels[currentView];
@@ -273,7 +273,7 @@
         document.getElementById('searchFeedback').innerHTML = '';
         document.getElementById('classDetailsPanel').style.display = 'none';
         document.querySelector('.ranking-scroll-area').style.display = 'block';
-        
+
         if (currentView !== 'classes') {
             selectedSchoolForClasses = null;
             document.getElementById('schoolClassesFilter').style.display = 'none';
@@ -283,17 +283,17 @@
             if (selectedSchoolForClasses) document.getElementById('schoolClassesFilter').style.display = 'flex';
         }
     }
-    
+
     function searchByCode() {
         const query = document.getElementById('searchInput').value.trim().toUpperCase();
         const feedback = document.getElementById('searchFeedback');
         if (!query) { feedback.innerHTML = ''; return; }
-        
+
         let formatted = query;
         if (currentView === 'students' && !query.startsWith('STD-')) formatted = 'STD-' + query.padStart(3, '0');
         else if (currentView === 'classes' && !query.startsWith('CLS-')) formatted = 'CLS-' + query.padStart(3, '0');
         else if (currentView === 'schools' && !query.startsWith('SCH-')) formatted = 'SCH-' + query.padStart(3, '0');
-        
+
         const found = currentData.find(item => item.supabaseId === formatted);
         if (found) {
             feedback.innerHTML = `<i class="fas fa-check-circle"></i> ${formatted} encontrado!`;
@@ -310,13 +310,13 @@
         }
         setTimeout(() => { feedback.innerHTML = ''; feedback.className = 'search-feedback'; }, 2500);
     }
-    
+
     function init() {
         updateViewLabel();
         loadRankings();
-        
+
         document.querySelectorAll('.nav-link').forEach(btn => {
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', function () {
                 document.querySelectorAll('.nav-link').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
                 currentView = this.dataset.view;
@@ -329,14 +329,64 @@
                 loadRankings();
             });
         });
-        
+
         document.getElementById('searchBtn').addEventListener('click', searchByCode);
         document.getElementById('searchInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') searchByCode(); });
         document.getElementById('classBySchoolFilter').addEventListener('change', () => loadRankings());
         document.getElementById('backToClassesBtn').addEventListener('click', backToClasses);
         document.getElementById('shiftFilter').addEventListener('change', (e) => { currentShiftFilter = e.target.value; loadRankings(); });
     }
-    
+
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
     else init();
 })();
+
+// Modal Control
+document.addEventListener('DOMContentLoaded', () => {
+    const modals = document.querySelectorAll('.info-widget-modal');
+    const footerLinks = document.querySelectorAll('.footer-links a[data-modal]');
+
+    // Open modal when link is clicked
+    footerLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const modalId = link.dataset.modal + 'Modal';
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+        });
+    });
+
+    // Close modal when close button is clicked
+    modals.forEach(modal => {
+        const closeBtn = modal.querySelector('.info-widget-close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            });
+        }
+    });
+
+    // Close modal when clicking outside content
+    modals.forEach(modal => {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        });
+    });
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            modals.forEach(modal => {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            });
+        }
+    });
+});
