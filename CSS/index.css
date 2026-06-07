@@ -785,9 +785,11 @@ body {
   max-width: 600px;
   width: 90%;
   max-height: 80vh;
-  overflow-y: auto;
+  overflow: hidden;
   box-shadow: 0 24px 36px -12px rgba(255, 45, 127, 0.18);
   animation: slideUp 0.3s ease-out;
+  display: flex;
+  flex-direction: column;
 }
 
 @keyframes slideUp {
@@ -807,10 +809,11 @@ body {
   align-items: center;
   padding: 24px;
   border-bottom: 1px solid var(--border-subtle);
-  position: sticky;
-  top: 0;
+  flex-shrink: 0;
   background: white;
   border-radius: 16px 16px 0 0;
+  position: relative;
+  z-index: 2;
 }
 
 .info-widget-header h2 {
@@ -847,6 +850,8 @@ body {
 
 .info-widget-body {
   padding: 24px;
+  overflow-y: auto;
+  min-height: 0;
 }
 
 .info-section {
@@ -921,20 +926,20 @@ body {
 }
 
 /* Scrollbar styling */
-.info-widget-content::-webkit-scrollbar {
+.info-widget-body::-webkit-scrollbar {
   width: 8px;
 }
 
-.info-widget-content::-webkit-scrollbar-track {
+.info-widget-body::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.info-widget-content::-webkit-scrollbar-thumb {
+.info-widget-body::-webkit-scrollbar-thumb {
   background: var(--primary-glow);
   border-radius: 4px;
 }
 
-.info-widget-content::-webkit-scrollbar-thumb:hover {
+.info-widget-body::-webkit-scrollbar-thumb:hover {
   background: var(--primary);
 }
 
