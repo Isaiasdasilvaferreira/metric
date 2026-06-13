@@ -5,7 +5,7 @@
     let selectedClassForStudents = null;
     let currentShiftFilter = 'all';
 
-    const API_BASE_URL = 'https://backend-metric.onrender.com/api';
+    const API_BASE_URL = process.env.API_BASE_URL;
 
     async function fetchFromAPI(endpoint) {
         try {
