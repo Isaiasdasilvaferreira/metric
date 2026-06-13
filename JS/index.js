@@ -66,7 +66,7 @@
             
             const data = await response.json();
             return data;
-        } catch (error) {o
+        } catch (error) {
             console.error('Erro de conexão');
             throw error;
         }
@@ -198,6 +198,37 @@
                 </div>
             </div>
         `).join('');
+    }
+
+    function updateViewLabel() {
+        const labels = { students: 'de Alunos', classes: 'de Turmas', schools: 'de Escolas' };
+        const rankLabel = document.getElementById('rankLabel');
+        if (rankLabel) rankLabel.innerText = labels[currentView] || '';
+        
+        const searchInput = document.getElementById('searchInput');
+        const searchFeedback = document.getElementById('searchFeedback');
+        if (searchInput) searchInput.value = '';
+        if (searchFeedback) searchFeedback.innerHTML = '';
+        
+        const classDetailsPanel = document.getElementById('classDetailsPanel');
+        const rankingScrollArea = document.querySelector('.ranking-scroll-area');
+        if (classDetailsPanel) classDetailsPanel.style.display = 'none';
+        if (rankingScrollArea) rankingScrollArea.style.display = 'block';
+
+        if (currentView !== 'classes') {
+            selectedSchoolForClasses = null;
+            const schoolClassesFilter = document.getElementById('schoolClassesFilter');
+            const shiftFilterContainer = document.getElementById('shiftFilterContainer');
+            if (schoolClassesFilter) schoolClassesFilter.style.display = 'none';
+            if (shiftFilterContainer) shiftFilterContainer.style.display = 'none';
+        } else {
+            const shiftFilterContainer = document.getElementById('shiftFilterContainer');
+            if (shiftFilterContainer) shiftFilterContainer.style.display = 'block';
+            if (selectedSchoolForClasses) {
+                const schoolClassesFilter = document.getElementById('schoolClassesFilter');
+                if (schoolClassesFilter) schoolClassesFilter.style.display = 'flex';
+            }
+        }
     }
 
     async function loadRankings() {
