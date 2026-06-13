@@ -19,33 +19,46 @@
     }
 
     async function getData(type) {
-        try {
-            let data;
-            
-            if (type === 'schools') {
-                data = await fetchFromAPI('/ranking_escolas');
-            } else if (type === 'classes') {
-                data = await fetchFromAPI('/ranking_turmas');
-            } else {
-                data = await fetchFromAPI('/ranking_alunos');
-            }
-
-            if (data && data.length) {
-                data.sort((a, b) => (b.score || b.points || 0) - (a.score || a.points || 0));
-                const withRank = data.map((item, idx) => ({ 
-                    ...item, 
-                    rank: idx + 1,
-                    supabaseId: item.id || item.ID
-                }));
-                return withRank;
-            }
-            
-            return [];
-        } catch (error) {
-            console.error(`Erro ao carregar ${type}:`, error);
-            return [];
+    try {
+        let response;
+        
+        if (type === 'schools') {
+            response = await fetchFromAPI('/ranking_escolas');
+        } else if (type === 'classes') {
+            response = await fetchFromAPI('/ranking_turmas');
+        } else {
+            response = await fetchFromAPI('/ranking_alunos');
         }
+
+        let data = response;
+        
+        if (response && response.success && response.ranking) {
+            data = response.ranking;
+        }
+
+        if (data && data.length) {
+            data.sort((a, b) => (b.pontuacao || b.score || b.points || 0) - (a.pontuacao || a.score || a.points || 0));
+            const withRank = data.map((item, idx) => ({ 
+                id: item.id_ranking || item.id_aluno || item.id,
+                name: item.nome || item.name || 'Sem nome',
+                school: item.nome_escola || item.escola || 'ETEC de Itaquaquecetuba',
+                class: item.nome_turma || item.turma || 'Desenvolvimento de Sistemas',
+                shift: item.turno || 'Manhã',
+                points: item.pontuacao || item.points || 0,
+                score: item.pontuacao || item.score || 0,
+                students: item.quantidade_alunos || item.students || 0,
+                rank: idx + 1,
+                supabaseId: item.id_ranking || item.id_aluno || item.id
+            }));
+            return withRank;
+        }
+        
+        return [];
+    } catch (error) {
+        console.error(`Erro ao carregar ${type}:`, error);
+        return [];
     }
+}
 
     function getMedalHtml(rank) {
         if (rank === 1) return '<div class="position-medal"><i class="fas fa-crown"></i></div>';
