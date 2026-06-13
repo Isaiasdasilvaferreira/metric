@@ -5,7 +5,7 @@
     let selectedClassForStudents = null;
     let currentShiftFilter = 'all';
 
-    const API_BASE_URL = process.env.API_BASE_URL;
+    const API_BASE_URL = '/api';
 
     async function fetchFromAPI(endpoint) {
         try {
