@@ -36,27 +36,6 @@
             }
 
             if (data && data.length) {
-                if (type === 'students') {
-                    const escolas = await fetchFromAPI('/escolas');
-                    const turmas = await fetchFromAPI('/turmas');
-                    
-                    const escolasMap = {};
-                    if (escolas && escolas.length) {
-                        escolas.forEach(e => { escolasMap[e.id_escola] = e.nome; });
-                    }
-                    
-                    const turmasMap = {};
-                    if (turmas && turmas.length) {
-                        turmas.forEach(t => { turmasMap[t.id_turma] = t.nome; });
-                    }
-                    
-                    data = data.map(item => ({
-                        ...item,
-                        nome_escola: escolasMap[item.id_escola] || 'Escola não informada',
-                        nome_turma: turmasMap[item.id_turma] || 'Turma não informada'
-                    }));
-                }
-
                 data.sort((a, b) => (b.pontuacao || b.score || b.points || 0) - (a.pontuacao || a.score || a.points || 0));
                 const withRank = data.map((item, idx) => ({ 
                     id: item.id_ranking || item.id_aluno || item.id,
@@ -68,8 +47,7 @@
                     score: item.pontuacao || item.score || 0,
                     students: item.quantidade_alunos || item.students || 0,
                     rank: idx + 1,
-                    supabaseId: item.id_ranking || item.id_aluno || item.id,
-                    cod_identificacao: item.cod_identificacao || ''
+                    supabaseId: item.id_ranking || item.id_aluno || item.id
                 }));
                 return withRank;
             }
@@ -197,25 +175,13 @@
     }
 
     function searchByCode() {
-        const query = document.getElementById('searchInput').value.trim();
+        const query = document.getElementById('searchInput').value.trim().toUpperCase();
         const feedback = document.getElementById('searchFeedback');
         if (!query) { feedback.innerHTML = ''; return; }
-
-        const found = currentData.find(item => 
-            String(item.supabaseId) === query || 
-            String(item.cod_identificacao) === query ||
-            String(item.id) === query
-        );
-        
+        const found = currentData.find(item => item.supabaseId === query);
         if (found) {
             feedback.innerHTML = `<i class="fas fa-check-circle"></i> ${query} encontrado!`;
             feedback.className = 'search-feedback success';
-            const card = document.querySelector(`.rank-card[data-supabase-id="${found.id || found.supabaseId}"]`);
-            if (card) {
-                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                card.classList.add('highlight');
-                setTimeout(() => card.classList.remove('highlight'), 2000);
-            }
         } else {
             feedback.innerHTML = `<i class="fas fa-exclamation-circle"></i> Código não encontrado`;
             feedback.className = 'search-feedback error';
