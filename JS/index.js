@@ -5,90 +5,131 @@
     let selectedClassForStudents = null;
     let currentShiftFilter = 'all';
 
-    const API_BASE_URL = 'https://backend-metric.onrender.com/api';
+    const API_BASE_URL = '/api';
+
+    function sanitizeHTML(str) {
+        if (!str) return '';
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#x27;',
+            '/': '&#x2F;',
+            '`': '&#x60;',
+            '=': '&#x3D;'
+        };
+        return str.replace(/[&<>"'`=/]/g, char => map[char]);
+    }
+
+    function validateAPIData(data, type) {
+        if (!data) return [];
+        
+        let items = data;
+        if (data.success && Array.isArray(data.ranking)) {
+            items = data.ranking;
+        }
+        
+        if (!Array.isArray(items)) return [];
+        
+        return items.filter(item => {
+            if (type === 'students') {
+                return item.nome && typeof item.nome === 'string' && item.nome.length > 0;
+            } else if (type === 'classes') {
+                return item.nome && typeof item.nome === 'string';
+            } else if (type === 'schools') {
+                return item.nome && typeof item.nome === 'string';
+            }
+            return true;
+        });
+    }
 
     async function fetchFromAPI(endpoint) {
         try {
-            const response = await fetch(`${API_BASE_URL}${endpoint}`);
-            if (!response.ok) throw new Error(`Erro ${response.status}: ${response.statusText}`);
-            return await response.json();
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Erro ao carregar dados');
+            }
+            
+            const data = await response.json();
+            return data;
         } catch (error) {
-            console.error('Erro na requisição:', error);
+            console.error('Erro de conexão');
             throw error;
         }
     }
 
     async function getData(type) {
         try {
-            let data;
+            let response;
             
             if (type === 'schools') {
-                data = await fetchFromAPI('/ranking_escolas');
+                response = await fetchFromAPI('/ranking_escolas');
             } else if (type === 'classes') {
-                data = await fetchFromAPI('/ranking_turmas');
+                response = await fetchFromAPI('/ranking_turmas');
             } else {
-                data = await fetchFromAPI('/ranking_alunos');
+                response = await fetchFromAPI('/ranking_alunos');
             }
 
-            if (data && data.length) {
-                data.sort((a, b) => (b.score || b.points || 0) - (a.score || a.points || 0));
-                const withRank = data.map((item, idx) => ({ 
-                    ...item, 
-                    rank: idx + 1,
-                    supabaseId: item.id || item.ID
-                }));
-                return withRank;
-            }
+            let data = validateAPIData(response, type);
             
-            return [];
+            if (data.length === 0) return [];
+
+            data.sort((a, b) => {
+                const scoreA = parseInt(a.pontuacao) || parseInt(a.score) || 0;
+                const scoreB = parseInt(b.pontuacao) || parseInt(b.score) || 0;
+                return scoreB - scoreA;
+            });
+            
+            const withRank = data.map((item, idx) => ({ 
+                id: sanitizeHTML(String(item.id_ranking || item.id_aluno || item.id || '')),
+                name: sanitizeHTML(String(item.nome || 'Sem nome')),
+                school: sanitizeHTML(String(item.nome_escola || item.escola || 'Escola não informada')),
+                class: sanitizeHTML(String(item.nome_turma || item.turma || 'Turma não informada')),
+                shift: sanitizeHTML(String(item.turno || 'Manhã')),
+                points: parseInt(item.pontuacao) || parseInt(item.points) || 0,
+                score: parseInt(item.pontuacao) || parseInt(item.score) || 0,
+                students: parseInt(item.quantidade_alunos) || parseInt(item.students) || 0,
+                rank: idx + 1,
+                supabaseId: sanitizeHTML(String(item.id_ranking || item.id_aluno || item.id || ''))
+            }));
+            
+            return withRank;
         } catch (error) {
-            console.error(`Erro ao carregar ${type}:`, error);
+            console.error('Erro ao carregar dados');
             return [];
         }
     }
 
     function getMedalHtml(rank) {
-        if (rank === 1) return '<div class="position-medal"><i class="fas fa-crown"></i></div>';
-        if (rank === 2) return '<div class="position-medal"><i class="fas fa-medal silver"></i></div>';
-        if (rank === 3) return '<div class="position-medal"><i class="fas fa-medal bronze"></i></div>';
-        return `<div class="position-number">${rank}º</div>`;
-    }
-
-    function escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/[&<>]/g, function (m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
-    }
-
-    async function getClassesBySchool(schoolName) {
-        try {
-            const allClasses = await fetchFromAPI('/ranking_turmas');
-            return allClasses.filter(c => c.school === schoolName);
-        } catch (error) {
-            console.error('Erro ao buscar turmas da escola:', error);
-            return [];
-        }
-    }
-
-    async function getStudentsByClass(className, schoolName) {
-        try {
-            const allStudents = await fetchFromAPI('/ranking_alunos');
-            return allStudents.filter(s => s.class === className && s.school === schoolName);
-        } catch (error) {
-            console.error('Erro ao buscar alunos da turma:', error);
-            return [];
-        }
+        const validRank = parseInt(rank) || 0;
+        if (validRank === 1) return '<div class="position-medal"><i class="fas fa-crown"></i></div>';
+        if (validRank === 2) return '<div class="position-medal"><i class="fas fa-medal silver"></i></div>';
+        if (validRank === 3) return '<div class="position-medal"><i class="fas fa-medal bronze"></i></div>';
+        return `<div class="position-number">${validRank}º</div>`;
     }
 
     function renderStudents(data) {
+        if (!Array.isArray(data)) return '<div class="empty-state"><i class="fas fa-user-graduate"></i><p>Nenhum aluno encontrado</p></div>';
+        
         let filtered = currentShiftFilter === 'all' ? data : data.filter(item => item.shift === currentShiftFilter);
-        if (!filtered.length) return `<div class="empty-state"><i class="fas fa-user-graduate"></i><p>Nenhum aluno encontrado</p></div>`;
+        if (!filtered.length) return '<div class="empty-state"><i class="fas fa-user-graduate"></i><p>Nenhum aluno encontrado</p></div>';
+        
         return filtered.map(item => `
-            <div class="rank-card" data-supabase-id="${item.id || item.ID}">
+            <div class="rank-card" data-supabase-id="${escapeHtml(String(item.supabaseId || ''))}">
                 <div class="rank-row">
                     <div class="rank-position">${getMedalHtml(item.rank)}</div>
                     <div class="rank-content">
@@ -96,7 +137,7 @@
                         <div class="rank-meta">
                             <span><i class="fas fa-school"></i> ${escapeHtml(item.school)}</span>
                             <span><i class="fas fa-layer-group"></i> ${escapeHtml(item.class)}</span>
-                            <span><i class="fas fa-clock"></i> ${item.shift}</span>
+                            <span><i class="fas fa-clock"></i> ${escapeHtml(item.shift || 'Manhã')}</span>
                         </div>
                     </div>
                     <div class="rank-stats">
@@ -109,11 +150,15 @@
     }
 
     function renderClasses(data) {
+        if (!Array.isArray(data)) return '<div class="empty-state"><i class="fas fa-chalkboard-user"></i><p>Nenhuma turma encontrada</p></div>';
+        
         let filtered = [...data];
         if (selectedSchoolForClasses) filtered = filtered.filter(item => item.school === selectedSchoolForClasses);
         if (currentShiftFilter !== 'all') filtered = filtered.filter(item => item.shift === currentShiftFilter);
         filtered.sort((a, b) => (b.score || 0) - (a.score || 0));
-        if (!filtered.length) return `<div class="empty-state"><i class="fas fa-chalkboard-user"></i><p>Nenhuma turma encontrada</p></div>`;
+        
+        if (!filtered.length) return '<div class="empty-state"><i class="fas fa-chalkboard-user"></i><p>Nenhuma turma encontrada</p></div>';
+        
         return filtered.map((item, idx) => `
             <div class="rank-card" data-class-name="${escapeHtml(item.name)}" data-school-name="${escapeHtml(item.school)}">
                 <div class="rank-row">
@@ -122,8 +167,8 @@
                         <div class="rank-title">${escapeHtml(item.name)}</div>
                         <div class="rank-meta">
                             <span><i class="fas fa-school"></i> ${escapeHtml(item.school)}</span>
-                            <span><i class="fas fa-users"></i> ${item.students || 0}</span>
-                            <span><i class="fas fa-clock"></i> ${item.shift}</span>
+                            <span><i class="fas fa-users"></i> ${escapeHtml(String(item.students || 0))}</span>
+                            <span><i class="fas fa-clock"></i> ${escapeHtml(item.shift || 'Manhã')}</span>
                         </div>
                     </div>
                     <div class="rank-stats">
@@ -136,14 +181,15 @@
     }
 
     function renderSchools(data) {
-        if (!data.length) return `<div class="empty-state"><i class="fas fa-building"></i><p>Nenhuma escola encontrada</p></div>`;
+        if (!Array.isArray(data) || !data.length) return '<div class="empty-state"><i class="fas fa-building"></i><p>Nenhuma escola encontrada</p></div>';
+        
         return data.map(item => `
             <div class="rank-card" data-school-name="${escapeHtml(item.name)}">
                 <div class="rank-row">
                     <div class="rank-position">${getMedalHtml(item.rank)}</div>
                     <div class="rank-content">
                         <div class="rank-title">${escapeHtml(item.name)}</div>
-                        <div class="rank-meta"><span><i class="fas fa-users"></i> ${item.students || 0} alunos</span></div>
+                        <div class="rank-meta"><span><i class="fas fa-users"></i> ${escapeHtml(String(item.students || 0))} alunos</span></div>
                     </div>
                     <div class="rank-stats">
                         <div class="rank-score">${(item.score || 0).toLocaleString()}</div>
@@ -154,171 +200,100 @@
         `).join('');
     }
 
-    async function showClassStudents(className, schoolName) {
-        document.getElementById('classDetailsPanel').style.display = 'block';
-        document.querySelector('.ranking-scroll-area').style.display = 'none';
-        document.getElementById('shiftFilterContainer').style.display = 'none';
-        document.getElementById('schoolClassesFilter').style.display = 'none';
-        document.getElementById('selectedClassName').innerHTML = `${escapeHtml(className)} · ${escapeHtml(schoolName)}`;
+    function updateViewLabel() {
+        const labels = { students: 'de Alunos', classes: 'de Turmas', schools: 'de Escolas' };
+        const rankLabel = document.getElementById('rankLabel');
+        if (rankLabel) rankLabel.innerText = labels[currentView] || '';
+        
+        const searchInput = document.getElementById('searchInput');
+        const searchFeedback = document.getElementById('searchFeedback');
+        if (searchInput) searchInput.value = '';
+        if (searchFeedback) searchFeedback.innerHTML = '';
+        
+        const classDetailsPanel = document.getElementById('classDetailsPanel');
+        const rankingScrollArea = document.querySelector('.ranking-scroll-area');
+        if (classDetailsPanel) classDetailsPanel.style.display = 'none';
+        if (rankingScrollArea) rankingScrollArea.style.display = 'block';
 
-        const studentsList = document.getElementById('classStudentsList');
-        studentsList.innerHTML = `<div class="loading"><i class="fas fa-spinner fa-pulse"></i><p>Carregando alunos...</p></div>`;
-
-        const students = await getStudentsByClass(className, schoolName);
-
-        if (students.length) {
-            studentsList.innerHTML = students.map((s, idx) => `
-                <div class="rank-card">
-                    <div class="rank-row">
-                        <div class="rank-position">${getMedalHtml(idx + 1)}</div>
-                        <div class="rank-content">
-                            <div class="rank-title">${escapeHtml(s.name)}</div>
-                            <div class="rank-meta">
-                                <span><i class="fas fa-clock"></i> ${s.shift}</span>
-                                <span><i class="fas fa-id-card"></i> ${s.id || s.ID}</span>
-                            </div>
-                        </div>
-                        <div class="rank-stats">
-                            <div class="rank-score">${s.points || 0}</div>
-                            <div class="rank-label">pts</div>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
+        if (currentView !== 'classes') {
+            selectedSchoolForClasses = null;
+            const schoolClassesFilter = document.getElementById('schoolClassesFilter');
+            const shiftFilterContainer = document.getElementById('shiftFilterContainer');
+            if (schoolClassesFilter) schoolClassesFilter.style.display = 'none';
+            if (shiftFilterContainer) shiftFilterContainer.style.display = 'none';
         } else {
-            studentsList.innerHTML = '<div class="empty-state"><i class="fas fa-user-slash"></i><p>Nenhum aluno nesta turma</p></div>';
+            const shiftFilterContainer = document.getElementById('shiftFilterContainer');
+            if (shiftFilterContainer) shiftFilterContainer.style.display = 'block';
+            if (selectedSchoolForClasses) {
+                const schoolClassesFilter = document.getElementById('schoolClassesFilter');
+                if (schoolClassesFilter) schoolClassesFilter.style.display = 'flex';
+            }
         }
-        selectedClassForStudents = true;
-    }
-
-    function backToClasses() {
-        document.getElementById('classDetailsPanel').style.display = 'none';
-        document.querySelector('.ranking-scroll-area').style.display = 'block';
-        if (currentView === 'classes') {
-            document.getElementById('shiftFilterContainer').style.display = 'block';
-            if (selectedSchoolForClasses) document.getElementById('schoolClassesFilter').style.display = 'flex';
-        }
-        selectedClassForStudents = null;
-        loadRankings();
     }
 
     async function loadRankings() {
         if (selectedClassForStudents) return;
         const container = document.getElementById('rankList');
-        container.innerHTML = `<div class="loading"><i class="fas fa-spinner fa-pulse"></i><p>Carregando...</p></div>`;
-
-        const data = await getData(currentView);
-        currentData = data;
-        let html = '';
-        if (currentView === 'students') html = renderStudents(data);
-        else if (currentView === 'classes') html = renderClasses(data);
-        else html = renderSchools(data);
-        container.innerHTML = html;
-
-        if (currentView === 'schools') {
-            document.querySelectorAll('.rank-card').forEach(card => {
-                card.removeEventListener('click', card.schoolHandler);
-                card.schoolHandler = () => {
-                    const school = card.getAttribute('data-school-name');
-                    if (school) {
-                        currentView = 'classes';
-                        document.querySelectorAll('.nav-link').forEach(btn => btn.classList.remove('active'));
-                        document.querySelector('[data-view="classes"]').classList.add('active');
-                        updateViewLabel();
-                        updateClassFilterBySchool(school);
-                        loadRankings();
-                    }
-                };
-                card.addEventListener('click', card.schoolHandler);
-            });
-        }
-
-        if (currentView === 'classes') {
-            document.querySelectorAll('.rank-card').forEach(card => {
-                card.removeEventListener('click', card.classHandler);
-                card.classHandler = () => {
-                    const className = card.getAttribute('data-class-name');
-                    const schoolName = card.getAttribute('data-school-name');
-                    if (className && schoolName) showClassStudents(className, schoolName);
-                };
-                card.addEventListener('click', card.classHandler);
-            });
-        }
-    }
-
-    async function updateClassFilterBySchool(schoolName) {
-        const classFilter = document.getElementById('classBySchoolFilter');
-        const filterContainer = document.getElementById('schoolClassesFilter');
-        const selectedSpan = document.getElementById('selectedSchoolName');
+        if (!container) return;
         
-        classFilter.innerHTML = '<option value="all">Carregando turmas...</option>';
-        
-        if (schoolName) {
-            const classes = await getClassesBySchool(schoolName);
-            classFilter.innerHTML = '<option value="all">Todas as turmas</option>';
-            classes.forEach(cls => {
-                const opt = document.createElement('option');
-                opt.value = cls.name;
-                opt.textContent = `${cls.name} (${cls.shift})`;
-                classFilter.appendChild(opt);
-            });
-            filterContainer.style.display = 'flex';
-            selectedSpan.innerHTML = `${schoolName}`;
-            selectedSchoolForClasses = schoolName;
-        } else {
-            classFilter.innerHTML = '<option value="all">Todas as turmas</option>';
-            filterContainer.style.display = 'none';
-            selectedSchoolForClasses = null;
-        }
-        loadRankings();
-    }
+        container.textContent = '';
+        container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-pulse"></i><p>Carregando...</p></div>';
 
-    function updateViewLabel() {
-        const labels = { students: 'de Alunos', classes: 'de Turmas', schools: 'de Escolas' };
-        document.getElementById('rankLabel').innerText = labels[currentView];
-        document.getElementById('searchInput').value = '';
-        document.getElementById('searchFeedback').innerHTML = '';
-        document.getElementById('classDetailsPanel').style.display = 'none';
-        document.querySelector('.ranking-scroll-area').style.display = 'block';
-
-        if (currentView !== 'classes') {
-            selectedSchoolForClasses = null;
-            document.getElementById('schoolClassesFilter').style.display = 'none';
-            document.getElementById('shiftFilterContainer').style.display = 'none';
-        } else {
-            document.getElementById('shiftFilterContainer').style.display = 'block';
-            if (selectedSchoolForClasses) document.getElementById('schoolClassesFilter').style.display = 'flex';
+        try {
+            const data = await getData(currentView);
+            currentData = data;
+            let html = '';
+            if (currentView === 'students') html = renderStudents(data);
+            else if (currentView === 'classes') html = renderClasses(data);
+            else html = renderSchools(data);
+            container.innerHTML = html;
+        } catch (error) {
+            container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Erro ao carregar dados</p></div>';
         }
     }
 
     function searchByCode() {
-        const query = document.getElementById('searchInput').value.trim().toUpperCase();
+        const query = document.getElementById('searchInput').value.trim();
         const feedback = document.getElementById('searchFeedback');
-        if (!query) { feedback.innerHTML = ''; return; }
+        if (!query) { 
+            feedback.textContent = ''; 
+            return; 
+        }
 
-        let formatted = query;
-        if (currentView === 'students' && !query.startsWith('STD-')) formatted = 'STD-' + query.padStart(3, '0');
-        else if (currentView === 'classes' && !query.startsWith('CLS-')) formatted = 'CLS-' + query.padStart(3, '0');
-        else if (currentView === 'schools' && !query.startsWith('SCH-')) formatted = 'SCH-' + query.padStart(3, '0');
+        if (query.length > 50) {
+            feedback.textContent = 'Código muito longo';
+            feedback.className = 'search-feedback error';
+            return;
+        }
 
-        const found = currentData.find(item => item.supabaseId === formatted);
+        const sanitizedQuery = query.replace(/[<>"'`]/g, '');
+        const found = currentData.find(item => item.supabaseId === sanitizedQuery || item.cod_identificacao === sanitizedQuery);
+        
         if (found) {
-            feedback.innerHTML = `<i class="fas fa-check-circle"></i> ${formatted} encontrado!`;
+            feedback.textContent = `${sanitizedQuery} encontrado!`;
             feedback.className = 'search-feedback success';
-            const card = document.querySelector(`.rank-card[data-supabase-id="${formatted}"]`);
+            const card = document.querySelector(`.rank-card[data-supabase-id="${escapeHtml(sanitizedQuery)}"]`);
             if (card) {
                 card.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 card.classList.add('highlight');
                 setTimeout(() => card.classList.remove('highlight'), 2000);
             }
         } else {
-            feedback.innerHTML = `<i class="fas fa-exclamation-circle"></i> Código não encontrado`;
+            feedback.textContent = 'Código não encontrado';
             feedback.className = 'search-feedback error';
         }
-        setTimeout(() => { feedback.innerHTML = ''; feedback.className = 'search-feedback'; }, 2500);
+        setTimeout(() => { 
+            feedback.textContent = ''; 
+            feedback.className = 'search-feedback'; 
+        }, 2500);
     }
 
     function init() {
+        if (!document.getElementById('rankList')) {
+            console.error('Elemento rankList não encontrado');
+            return;
+        }
+
         updateViewLabel();
         loadRankings();
 
@@ -337,58 +312,12 @@
             });
         });
 
-        document.getElementById('searchBtn').addEventListener('click', searchByCode);
-        document.getElementById('searchInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') searchByCode(); });
-        document.getElementById('classBySchoolFilter').addEventListener('change', () => loadRankings());
-        document.getElementById('backToClassesBtn').addEventListener('click', backToClasses);
-        document.getElementById('shiftFilter').addEventListener('change', (e) => { currentShiftFilter = e.target.value; loadRankings(); });
+        const searchBtn = document.getElementById('searchBtn');
+        const searchInput = document.getElementById('searchInput');
+        if (searchBtn) searchBtn.addEventListener('click', searchByCode);
+        if (searchInput) searchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') searchByCode(); });
     }
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
     else init();
 })();
-
-document.addEventListener('DOMContentLoaded', () => {
-    const modals = document.querySelectorAll('.info-widget-modal');
-    const footerLinks = document.querySelectorAll('.footer-links a[data-modal]');
-
-    footerLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const modalId = link.dataset.modal + 'Modal';
-            const modal = document.getElementById(modalId);
-            if (modal) {
-                modal.style.display = 'flex';
-                document.body.style.overflow = 'hidden';
-            }
-        });
-    });
-
-    modals.forEach(modal => {
-        const closeBtn = modal.querySelector('.info-widget-close');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', () => {
-                modal.style.display = 'none';
-                document.body.style.overflow = 'auto';
-            });
-        }
-    });
-
-    modals.forEach(modal => {
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                modal.style.display = 'none';
-                document.body.style.overflow = 'auto';
-            }
-        });
-    });
-
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            modals.forEach(modal => {
-                modal.style.display = 'none';
-                document.body.style.overflow = 'auto';
-            });
-        }
-    });
-});
