@@ -314,10 +314,62 @@
 
         const searchBtn = document.getElementById('searchBtn');
         const searchInput = document.getElementById('searchInput');
+        const classBySchoolFilter = document.getElementById('classBySchoolFilter');
+        const backToClassesBtn = document.getElementById('backToClassesBtn');
+        const shiftFilter = document.getElementById('shiftFilter');
+        
         if (searchBtn) searchBtn.addEventListener('click', searchByCode);
         if (searchInput) searchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') searchByCode(); });
+        if (classBySchoolFilter) classBySchoolFilter.addEventListener('change', () => loadRankings());
+        if (backToClassesBtn) backToClassesBtn.addEventListener('click', backToClasses);
+        if (shiftFilter) shiftFilter.addEventListener('change', (e) => { currentShiftFilter = e.target.value; loadRankings(); });
     }
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
     else init();
 })();
+
+document.addEventListener('DOMContentLoaded', () => {
+    const modals = document.querySelectorAll('.info-widget-modal');
+    const footerLinks = document.querySelectorAll('.footer-links a[data-modal]');
+
+    footerLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const modalId = link.dataset.modal + 'Modal';
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+        });
+    });
+
+    modals.forEach(modal => {
+        const closeBtn = modal.querySelector('.info-widget-close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            });
+        }
+    });
+
+    modals.forEach(modal => {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            });
+        });
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            modals.forEach(modal => {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            });
+        }
+    });
+});
