@@ -200,6 +200,59 @@
         `).join('');
     }
 
+    async function showClassStudents(className, schoolName) {
+        document.getElementById('classDetailsPanel').style.display = 'block';
+        document.querySelector('.ranking-scroll-area').style.display = 'none';
+        document.getElementById('shiftFilterContainer').style.display = 'none';
+        document.getElementById('schoolClassesFilter').style.display = 'none';
+        document.getElementById('selectedClassName').innerHTML = `${escapeHtml(className)} · ${escapeHtml(schoolName)}`;
+
+        const studentsList = document.getElementById('classStudentsList');
+        studentsList.innerHTML = `<div class="loading"><i class="fas fa-spinner fa-pulse"></i><p>Carregando alunos...</p></div>`;
+
+        try {
+            const allStudents = await fetchFromAPI('/ranking_alunos');
+            const students = allStudents.filter(s => s.class === className && s.school === schoolName);
+
+            if (students.length) {
+                studentsList.innerHTML = students.map((s, idx) => `
+                    <div class="rank-card">
+                        <div class="rank-row">
+                            <div class="rank-position">${getMedalHtml(idx + 1)}</div>
+                            <div class="rank-content">
+                                <div class="rank-title">${escapeHtml(s.name)}</div>
+                                <div class="rank-meta">
+                                    <span><i class="fas fa-clock"></i> ${escapeHtml(s.shift || 'Manhã')}</span>
+                                    <span><i class="fas fa-id-card"></i> ${escapeHtml(s.id || s.ID || '')}</span>
+                                </div>
+                            </div>
+                            <div class="rank-stats">
+                                <div class="rank-score">${s.points || 0}</div>
+                                <div class="rank-label">pts</div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                studentsList.innerHTML = '<div class="empty-state"><i class="fas fa-user-slash"></i><p>Nenhum aluno nesta turma</p></div>';
+            }
+        } catch (error) {
+            studentsList.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Erro ao carregar alunos</p></div>';
+        }
+        selectedClassForStudents = true;
+    }
+
+    function backToClasses() {
+        document.getElementById('classDetailsPanel').style.display = 'none';
+        document.querySelector('.ranking-scroll-area').style.display = 'block';
+        if (currentView === 'classes') {
+            document.getElementById('shiftFilterContainer').style.display = 'block';
+            if (selectedSchoolForClasses) document.getElementById('schoolClassesFilter').style.display = 'flex';
+        }
+        selectedClassForStudents = null;
+        loadRankings();
+    }
+
     function updateViewLabel() {
         const labels = { students: 'de Alunos', classes: 'de Turmas', schools: 'de Escolas' };
         const rankLabel = document.getElementById('rankLabel');
@@ -247,9 +300,71 @@
             else if (currentView === 'classes') html = renderClasses(data);
             else html = renderSchools(data);
             container.innerHTML = html;
+
+            if (currentView === 'schools') {
+                document.querySelectorAll('.rank-card').forEach(card => {
+                    card.removeEventListener('click', card.schoolHandler);
+                    card.schoolHandler = () => {
+                        const school = card.getAttribute('data-school-name');
+                        if (school) {
+                            currentView = 'classes';
+                            document.querySelectorAll('.nav-link').forEach(btn => btn.classList.remove('active'));
+                            document.querySelector('[data-view="classes"]').classList.add('active');
+                            updateViewLabel();
+                            updateClassFilterBySchool(school);
+                            loadRankings();
+                        }
+                    };
+                    card.addEventListener('click', card.schoolHandler);
+                });
+            }
+
+            if (currentView === 'classes') {
+                document.querySelectorAll('.rank-card').forEach(card => {
+                    card.removeEventListener('click', card.classHandler);
+                    card.classHandler = () => {
+                        const className = card.getAttribute('data-class-name');
+                        const schoolName = card.getAttribute('data-school-name');
+                        if (className && schoolName) showClassStudents(className, schoolName);
+                    };
+                    card.addEventListener('click', card.classHandler);
+                });
+            }
         } catch (error) {
             container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Erro ao carregar dados</p></div>';
         }
+    }
+
+    async function updateClassFilterBySchool(schoolName) {
+        const classFilter = document.getElementById('classBySchoolFilter');
+        const filterContainer = document.getElementById('schoolClassesFilter');
+        const selectedSpan = document.getElementById('selectedSchoolName');
+        
+        classFilter.innerHTML = '<option value="all">Carregando turmas...</option>';
+        
+        if (schoolName) {
+            try {
+                const allClasses = await fetchFromAPI('/ranking_turmas');
+                const classes = allClasses.filter(c => c.school === schoolName);
+                classFilter.innerHTML = '<option value="all">Todas as turmas</option>';
+                classes.forEach(cls => {
+                    const opt = document.createElement('option');
+                    opt.value = cls.name;
+                    opt.textContent = `${cls.name} (${cls.shift || 'Manhã'})`;
+                    classFilter.appendChild(opt);
+                });
+                filterContainer.style.display = 'flex';
+                selectedSpan.innerHTML = `${schoolName}`;
+                selectedSchoolForClasses = schoolName;
+            } catch (error) {
+                classFilter.innerHTML = '<option value="all">Todas as turmas</option>';
+            }
+        } else {
+            classFilter.innerHTML = '<option value="all">Todas as turmas</option>';
+            filterContainer.style.display = 'none';
+            selectedSchoolForClasses = null;
+        }
+        loadRankings();
     }
 
     function searchByCode() {
@@ -314,10 +429,14 @@
 
         const searchBtn = document.getElementById('searchBtn');
         const searchInput = document.getElementById('searchInput');
+        const classBySchoolFilter = document.getElementById('classBySchoolFilter');
+        const backToClassesBtn = document.getElementById('backToClassesBtn');
         const shiftFilter = document.getElementById('shiftFilter');
         
         if (searchBtn) searchBtn.addEventListener('click', searchByCode);
         if (searchInput) searchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') searchByCode(); });
+        if (classBySchoolFilter) classBySchoolFilter.addEventListener('change', () => loadRankings());
+        if (backToClassesBtn) backToClassesBtn.addEventListener('click', backToClasses);
         if (shiftFilter) shiftFilter.addEventListener('change', (e) => { currentShiftFilter = e.target.value; loadRankings(); });
     }
 
