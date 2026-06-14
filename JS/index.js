@@ -27,7 +27,7 @@
             } else if (type === 'classes') {
                 response = await fetchFromAPI('/ranking_turmas');
             } else {
-                response = await fetchFromAPI('/ranking_alunos');
+                response = await fetchFromAPI('/ranking');
             }
 
             let data = response;
