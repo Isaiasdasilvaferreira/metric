@@ -5,7 +5,7 @@
     let selectedClassForStudents = null;
     let currentShiftFilter = 'all';
 
-    const API_BASE_URL = '/api';
+    const API_BASE_URL = 'https://backend-metric.onrender.com/api';
 
     function sanitizeHTML(str) {
         if (!str) return '';
@@ -314,14 +314,10 @@
 
         const searchBtn = document.getElementById('searchBtn');
         const searchInput = document.getElementById('searchInput');
-        const classBySchoolFilter = document.getElementById('classBySchoolFilter');
-        const backToClassesBtn = document.getElementById('backToClassesBtn');
         const shiftFilter = document.getElementById('shiftFilter');
         
         if (searchBtn) searchBtn.addEventListener('click', searchByCode);
         if (searchInput) searchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') searchByCode(); });
-        if (classBySchoolFilter) classBySchoolFilter.addEventListener('change', () => loadRankings());
-        if (backToClassesBtn) backToClassesBtn.addEventListener('click', backToClasses);
         if (shiftFilter) shiftFilter.addEventListener('change', (e) => { currentShiftFilter = e.target.value; loadRankings(); });
     }
 
