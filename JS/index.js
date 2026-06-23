@@ -28,8 +28,6 @@
         return `<div class="position-number">${rank}º</div>`;
     }
 
-    // ─── Requisição à API ─────────────────────────────────────────────────────
-
     async function fetchFromAPI(endpoint) {
         try {
             const response = await fetch(`${API_BASE_URL}${endpoint}`);
@@ -107,8 +105,6 @@
         };
     }
 
-    // ─── Carregamento de dados ────────────────────────────────────────────────
-
     async function getData(type) {
         try {
             let endpoint;
@@ -121,7 +117,6 @@
 
             if (!Array.isArray(data) || !data.length) return [];
 
-            // Ordenar por pontuação descendente antes de atribuir ranks
             data.sort((a, b) =>
                 (b.pontuacao || b.desempenho || b.score || b.points || 0) -
                 (a.pontuacao || a.desempenho || a.score || a.points || 0)
@@ -136,8 +131,6 @@
             return [];
         }
     }
-
-    // ─── Renderização ─────────────────────────────────────────────────────────
 
     function renderStudents(data) {
         let filtered = currentShiftFilter === 'all'
@@ -171,7 +164,6 @@
     function renderClasses(data) {
         let filtered = [...data];
 
-        // Filtra por escola usando id_escola (não por nome)
         if (selectedSchoolId)
             filtered = filtered.filter(item => item.schoolId === selectedSchoolId);
 
@@ -232,7 +224,6 @@
         `).join('');
     }
 
-    // Alunos de uma turma específica: filtra por id_escola E id_turma
     function renderClassStudents(studentsData) {
         let filtered = studentsData.filter(item =>
             item.schoolId === selectedSchoolId &&
@@ -267,8 +258,6 @@
             </div>
         `).join('');
     }
-
-    // ─── Navegação / estado ───────────────────────────────────────────────────
 
     function updateViewLabel() {
         const labels = { students: 'de Alunos', classes: 'de Turmas', schools: 'de Escolas' };
@@ -312,13 +301,12 @@
         updateViewLabel();
     }
 
-    // Popula o <select> de turmas usando id_escola para filtrar com precisão
     function populateClassFilter(classesData) {
         const select = document.getElementById('classBySchoolFilter');
         const classes = classesData
             .filter(item => !selectedSchoolId || item.schoolId === selectedSchoolId)
             .map(item => ({ id: item.classId, name: item.name }))
-            .filter((v, i, arr) => arr.findIndex(x => x.id === v.id) === i) // dedup por id
+            .filter((v, i, arr) => arr.findIndex(x => x.id === v.id) === i)
             .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
 
         select.innerHTML = '<option value="all">Todas as turmas</option>' +
@@ -364,8 +352,6 @@
         document.querySelector('.ranking-scroll-area').style.display = 'block';
     }
 
-    // ─── Busca por código ─────────────────────────────────────────────────────
-
     function searchByCode() {
         const query    = document.getElementById('searchInput').value.trim().toUpperCase();
         const feedback = document.getElementById('searchFeedback');
@@ -385,13 +371,10 @@
         setTimeout(() => { feedback.innerHTML = ''; feedback.className = 'search-feedback'; }, 2500);
     }
 
-    // ─── Inicialização ────────────────────────────────────────────────────────
-
     function init() {
         updateViewLabel();
         loadRankings();
 
-        // Navegação principal
         document.querySelectorAll('.nav-link').forEach(btn => {
             btn.addEventListener('click', function () {
                 document.querySelectorAll('.nav-link').forEach(b => b.classList.remove('active'));
@@ -407,16 +390,13 @@
             });
         });
 
-        // Busca
         document.getElementById('searchBtn').addEventListener('click', searchByCode);
         document.getElementById('searchInput').addEventListener('keypress', e => {
             if (e.key === 'Enter') searchByCode();
         });
 
-        // Voltar à lista de turmas
         document.getElementById('backToClassesBtn').addEventListener('click', backToClasses);
 
-        // Filtro de turma dentro da escola — usa classId (valor do <option>)
         document.getElementById('classBySchoolFilter').addEventListener('change', function () {
             if (this.value === 'all') {
                 selectedClassId   = null;
@@ -432,7 +412,6 @@
             }
         });
 
-        // Filtro de turno
         document.getElementById('shiftFilter').addEventListener('change', function () {
             currentShiftFilter = this.value;
             if (selectedClassId) {
@@ -444,7 +423,6 @@
             }
         });
 
-        // Clique nos cards — usa data-school-id e data-class-id (IDs reais)
         document.getElementById('rankList').addEventListener('click', function (e) {
             if (currentView === 'schools') {
                 const card = e.target.closest('.rank-card[data-school-id]');
@@ -471,8 +449,6 @@
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
     else init();
 })();
-
-// ─── Modais de Termos / Privacidade ──────────────────────────────────────────
 
 document.addEventListener('click', function (e) {
     const link = e.target.closest('.footer-links a[data-modal]');
