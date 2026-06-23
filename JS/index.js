@@ -308,7 +308,7 @@
         const classes = classesData
             .filter(item => !selectedSchoolId || item.schoolId === selectedSchoolId)
             .map(item => ({ id: item.classId, name: item.name }))
-            .filter((v, i, arr) => arr.findIndex(x => x.id === v.id) === i) // dedup por id
+            .filter((v, i, arr) => arr.findIndex(x => x.id === v.id) === i)
             .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
 
         select.innerHTML = '<option value="all">Todas as turmas</option>' +
