@@ -60,7 +60,7 @@
             schoolId,
             classId,
             name:       item.nome || item.name || 'Sem nome',
-            school:     schoolName || '⚠ Escola não informada',
+            school:     schoolName,
             class:      className  || '⚠ Turma não informada',
             shift:      item.turno || item.periodo || 'Manhã',
             points:     item.pontuacao || item.points || 0,
@@ -117,6 +117,7 @@
 
             if (!Array.isArray(data) || !data.length) return [];
 
+            // Ordenar por pontuação descendente antes de atribuir ranks
             data.sort((a, b) =>
                 (b.pontuacao || b.desempenho || b.score || b.points || 0) -
                 (a.pontuacao || a.desempenho || a.score || a.points || 0)
