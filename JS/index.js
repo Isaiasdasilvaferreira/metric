@@ -117,7 +117,6 @@
 
             if (!Array.isArray(data) || !data.length) return [];
 
-            // Ordenar por pontuação descendente antes de atribuir ranks
             data.sort((a, b) =>
                 (b.pontuacao || b.desempenho || b.score || b.points || 0) -
                 (a.pontuacao || a.desempenho || a.score || a.points || 0)
@@ -125,7 +124,7 @@
 
             if (type === 'schools') return data.map(normalizeSchool);
             if (type === 'classes') return data.map(normalizeClass);
-            return data.map(normalizeStudent); // students
+            return data.map(normalizeStudent);
 
         } catch (error) {
             console.error(`Erro ao carregar ${type}:`, error);
