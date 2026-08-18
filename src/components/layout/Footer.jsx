@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Download, Mail } from 'lucide-react';
 import LogoMark from '../ui/LogoMark.jsx';
 import LegalModal from '../legal/LegalModal.jsx';
-import { androidDownloadPath, contactEmail } from '../../data/siteData.js';
+import { contactEmail } from '../../data/siteData.js';
 import { legalContent } from '../../data/legalContent.js';
 
 function Footer() {
@@ -28,7 +28,7 @@ function Footer() {
 
         <div className="footer-column">
           <strong>Acesso</strong>
-          <a href={androidDownloadPath} download="Metric.-.Alunos.apk"><Download size={15} /> Baixar para Android</a>
+          <a href="https://github.com/Isaiasdasilvaferreira/metric/releases/download/metric/Metric.-.Alunos.apk" download="Metric.-.Alunos.apk"><Download size={15} /> Baixar para Android</a>
           <a href={`mailto:${contactEmail}`}><Mail size={15} /> {contactEmail}</a>
         </div>
       </div>
