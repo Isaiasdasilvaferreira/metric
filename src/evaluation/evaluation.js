@@ -114,7 +114,6 @@ export const evaluationContent = {
           'A Categoria I funciona de maneira diferente:',
           '• Sua pontuação base é sempre 200 pontos.',
           '• Não há desconto por quantidade de erros.',
-          '• Apenas sofre decréscimo por tempo (Sessão 10).',
           'Isso significa que, ao chegar em I, o número de erros adicionais não diminui mais a pontuação base de 200 pontos.'
         ]
       },
@@ -131,16 +130,7 @@ export const evaluationContent = {
         ]
       },
       {
-        title: '10. Desempate na Categoria I',
-        paragraphs: [
-          'Como todos na Categoria I iniciam com 200 pontos, o tempo tem papel fundamental:',
-          '• No I, a cada 30 segundos é descontado 1 ponto (aplicado pela taxa de decréscimo).',
-          '• Aluno A (Tempo 7min = 420s): 200 - (420 ÷ 5 = 84) = 116 pontos.',
-          '• Aluno B (Tempo 8min = 480s): 200 - (480 ÷ 5 = 96) = 104 pontos.'
-        ]
-      },
-      {
-        title: '11. Ordem de desempate no ranking',
+        title: '10. Ordem de desempate no ranking',
         paragraphs: [
           'Em caso de igualdade no ranking, aplica-se a ordem:',
           '1º — Pontuação: Aluno com maior pontuação fica acima.',
@@ -149,17 +139,17 @@ export const evaluationContent = {
         ]
       },
       {
-        title: '12. Modo Ranqueado vs Modo Treinamento',
+        title: '11. Modo Ranqueado vs Modo Treinamento',
         paragraphs: [
           '• Modo Ranqueado: Calcula categoria, analisa erros e tempo, registra pontuação acumulada e inclui o aluno no ranking da turma.',
           '• Modo Treinamento: Foco exclusivo na prática. Não há cálculo para ranking, não há acúmulo de pontos e não altera posições.'
         ]
       },
       {
-        title: '13. Resumo rápido e exemplo completo',
+        title: '12. Resumo rápido com exemplo',
         paragraphs: [
           'Passos do cálculo: 1. Tempo determina início → 2. Erros comparados ao limite → 3. Ao descer, erros da categoria anterior são consumidos → 4. Erros restantes descontam pontos → 5. Tempo desempata.',
-          'Exemplo Completo (Eduardo | Atividade Difícil | Tempo: 3min | Erros: 5):',
+          'Exemplo: (Eduardo | Atividade Difícil | Tempo: 3min | Erros: 5):',
           '• Tempo (3min): começa em MB (limite difícil: 4 erros).',
           '• Erros: 5. Sobra 1 erro (5 - 4 = 1). Desce MB → B.',
           '• Desconto no B: 1 erro × 30 = 30 pontos. Pontuação B: 800 - 30 = 770.',
