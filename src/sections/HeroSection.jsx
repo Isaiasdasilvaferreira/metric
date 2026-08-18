@@ -2,9 +2,10 @@ import { ArrowRight, Check, Download } from 'lucide-react';
 import MathFloat from '../components/ui/MathFloat.jsx';
 import MathMarquee from '../components/ui/MathMarquee.jsx';
 import AppMockup from '../components/mockups/AppMockup.jsx';
-import { androidDownloadPath } from '../data/siteData.js';
 
 function HeroSection() {
+  const androidDownloadUrl = 'https://github.com/Isaiasdasilvaferreira/metric/releases/download/metric/Metric.-.Alunos.apk';
+
   return (
     <section className="hero" id="inicio">
       <div className="grid-bg" />
@@ -21,7 +22,13 @@ function HeroSection() {
           <p>A Metric permite que a professora prepare atividades e que os alunos resolvam cada operação pelo celular, digitando a resposta e avançando questão por questão.</p>
 
           <div className="hero-cta-row">
-            <a className="btn btn--pink btn--large" href={androidDownloadPath} download="Metric.apk">
+            <a 
+              className="btn btn--pink btn--large" 
+              href={androidDownloadUrl}
+              download="Metric.apk"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <Download size={18} /> Baixar para Android
             </a>
             <a className="btn btn--soft btn--large" href="#como-funciona">
