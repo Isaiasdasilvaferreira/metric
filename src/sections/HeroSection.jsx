@@ -25,7 +25,6 @@ function HeroSection() {
             <a 
               className="btn btn--pink btn--large" 
               href={androidDownloadUrl}
-              download="Metric.apk"
               target="_blank"
               rel="noopener noreferrer"
             >
