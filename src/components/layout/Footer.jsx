@@ -28,7 +28,7 @@ function Footer() {
 
         <div className="footer-column">
           <strong>Acesso</strong>
-          <a href={androidDownloadPath} download="Metric.apk"><Download size={15} /> Baixar para Android</a>
+          <a href={androidDownloadPath} download="Metric.-.Alunos.apk"><Download size={15} /> Baixar para Android</a>
           <a href={`mailto:${contactEmail}`}><Mail size={15} /> {contactEmail}</a>
         </div>
       </div>
