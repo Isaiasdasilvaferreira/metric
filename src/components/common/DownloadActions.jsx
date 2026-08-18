@@ -1,10 +1,17 @@
 import { LockKeyhole, Smartphone } from 'lucide-react';
-import { androidDownloadPath } from '../../data/siteData.js';
 
 function DownloadActions({ light = false }) {
+
+  const androidDownloadUrl = 'https://github.com/Isaiasdasilvaferreira/metric/releases/download/metric/Metric.-.Alunos.apk';
+
   return (
     <div className={`download-actions ${light ? 'download-actions--light' : ''}`}>
-      <a className="store-button store-button--android" href={androidDownloadPath} download="https://github.com/Isaiasdasilvaferreira/metric/releases/download/metric/Metric.-.Alunos.apk">
+      <a 
+        className="store-button store-button--android" 
+        href={androidDownloadUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
         <span className="store-icon"><Smartphone /></span>
         <span><small>Disponível para</small><strong>Android</strong></span>
       </a>
