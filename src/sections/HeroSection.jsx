@@ -2,10 +2,9 @@ import { ArrowRight, Check, Download } from 'lucide-react';
 import MathFloat from '../components/ui/MathFloat.jsx';
 import MathMarquee from '../components/ui/MathMarquee.jsx';
 import AppMockup from '../components/mockups/AppMockup.jsx';
+import { androidPlayStoreUrl } from '../data/siteData.js';
 
 function HeroSection() {
-  const androidDownloadUrl = 'https://github.com/Isaiasdasilvaferreira/metric/releases/download/metric/Metric.-.Alunos.apk';
-
   return (
     <section className="hero" id="inicio">
       <div className="grid-bg" />
@@ -24,11 +23,11 @@ function HeroSection() {
           <div className="hero-cta-row">
             <a 
               className="btn btn--pink btn--large" 
-              href={androidDownloadUrl}
+              href={androidPlayStoreUrl}
               target="_blank"
               rel="noopener noreferrer"
             >
-              <Download size={18} /> Baixar para Android
+              <Download size={18} /> Google Play
             </a>
             <a className="btn btn--soft btn--large" href="#como-funciona">
               Ver como funciona <ArrowRight size={18} />
