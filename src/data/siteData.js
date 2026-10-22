@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 
 export const androidDownloadPath = '/metric.apk';
-export const androidPlayStoreUrl = 'https://play.google.com/store/apps/details?id=com.sega.persona5.the.phantomx.en&pcampaignid=merch_published_cluster_promotion_battlestar_featured_games&hl=en';
+export const androidPlayStoreUrl = 'https://play.google.com';
 export const contactEmail = 'nwarelink.ofc@gmail.com';
 
 export const equations = [
