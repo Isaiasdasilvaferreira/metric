@@ -7,7 +7,7 @@ import {
   Zap,
 } from 'lucide-react';
 
-export const androidDownloadPath = '/metric.apk';
+export const androidDownloadPath = 'https://github.com/Isaiasdasilvaferreira/metric/releases/download/metric/Metric-Alunos.apk';
 export const androidPlayStoreUrl = 'https://play.google.com/apps/internaltest/4701729189129495332';
 export const contactEmail = 'nwarelink.ofc@gmail.com';
 
