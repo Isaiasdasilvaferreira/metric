@@ -3,9 +3,9 @@ import { androidPlayStoreUrl, androidApkUrl } from '../data/siteData.js';
 
 function DownloadActions({ light = false }) {
   return (
-    <div className="download-actions">
+    <div className={`download-actions${light ? ' download-actions--light' : ''}`}>
       <a
-        className={`btn ${light ? 'btn--light' : 'btn--pink'} btn--large`}
+        className="btn btn--pink btn--large"
         href={androidPlayStoreUrl}
         target="_blank"
         rel="noopener noreferrer"
@@ -19,7 +19,7 @@ function DownloadActions({ light = false }) {
         Google Play
       </a>
       <a
-        className={`btn ${light ? 'btn--outline-light' : 'btn--outline'} btn--large`}
+        className="btn btn--outline btn--large"
         href={androidApkUrl}
         target="_blank"
         rel="noopener noreferrer"
