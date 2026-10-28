@@ -1,8 +1,8 @@
-import { ArrowRight, Check } from 'lucide-react';
+import { ArrowRight, Check, Download } from 'lucide-react';
 import MathFloat from '../components/ui/MathFloat.jsx';
 import MathMarquee from '../components/ui/MathMarquee.jsx';
 import AppMockup from '../components/mockups/AppMockup.jsx';
-import { androidPlayStoreUrl } from '../data/siteData.js';
+import { androidPlayStoreUrl, androidApkUrl } from '../data/siteData.js';
 
 function HeroSection() {
   return (
@@ -34,6 +34,16 @@ function HeroSection() {
                 <path fill="#FF3A44" d="M5 44.3 31 33.5 26 24 5 44.3Z" />
               </svg>
               Google Play
+            </a>
+            <a
+              className="btn btn--outline btn--large"
+              href={androidApkUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              download
+            >
+              <Download size={18} />
+              Download alternativo (APK)
             </a>
             <a className="btn btn--soft btn--large" href="#como-funciona">
               Ver como funciona <ArrowRight size={18} />
