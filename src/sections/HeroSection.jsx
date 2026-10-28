@@ -21,8 +21,8 @@ function HeroSection() {
           <p>A Metric permite que a professora prepare atividades e que os alunos resolvam cada operação pelo celular, digitando a resposta e avançando questão por questão.</p>
 
           <div className="hero-cta-row">
-            <a 
-              className="btn btn--pink btn--large" 
+            <a
+              className="btn btn--pink btn--large"
               href={androidPlayStoreUrl}
               target="_blank"
               rel="noopener noreferrer"
