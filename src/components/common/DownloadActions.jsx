@@ -1,5 +1,5 @@
 import { Download } from 'lucide-react';
-import { androidPlayStoreUrl, androidApkUrl } from '../data/siteData.js';
+import { androidPlayStoreUrl, androidApkUrl } from '../../data/siteData.js';
 
 function DownloadActions({ light = false }) {
   return (
