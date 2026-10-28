@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 
 export const androidDownloadPath = '/metric.apk';
-export const androidPlayStoreUrl = 'https://play.google.com';
+export const androidPlayStoreUrl = 'https://play.google.com/apps/internaltest/4701729189129495332';
 export const contactEmail = 'nwarelink.ofc@gmail.com';
 
 export const equations = [
